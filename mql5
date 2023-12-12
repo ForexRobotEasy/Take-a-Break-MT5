@@ -1,0 +1,82 @@
+
+// Take a Break MT5
+// Developer's site: forexroboteasy.com
+// Development by: Forex Robot Easy Team
+
+// Function to check if it is a high-impact news event
+bool isHighImpactNewsEvent(datetime eventTime) {
+    // Check if the event time falls within the high-impact news event hours
+    if (TimeHour(eventTime) >= 12 && TimeHour(eventTime) <= 16) {
+        return true;
+    }
+    return false;
+}
+
+// Function to close all open trades
+void closeAllTrades() {
+    int totalPositions = PositionsTotal();
+    for (int i = totalPositions - 1; i >= 0; i--) {
+        if (PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_BUY || 
+            PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_SELL) {
+            // Close the position
+            PositionClose(PositionGetTicket());
+        }
+    }
+}
+
+// Function to pause trading
+void pauseTrading() {
+    // Check if account equity, balance, or margin is low
+    double accountEquity = AccountEquity();
+    double accountBalance = AccountBalance();
+    double accountMargin = AccountMargin();
+    
+    if (accountEquity < 1000 || accountBalance < 1000 || accountMargin < 500) {
+        // Close all open trades
+        closeAllTrades();
+    }
+}
+
+// Function to enable trading during specific dates and times
+bool isTradingAllowed() {
+    // Check if it is within the specified trading hours
+    if (TimeDayOfWeek(TimeCurrent()) >= 1 && TimeDayOfWeek(TimeCurrent()) <= 5) {
+        if (TimeHour(TimeCurrent()) >= 0 && TimeHour(TimeCurrent()) <= 8) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// Function to stop trading completely
+void stopTrading() {
+    // Close all open trades
+    closeAllTrades();
+    
+    // Stop the Expert Advisor
+    ExpertRemove();
+}
+
+// Main function to control the trading operations
+void OnTick() {
+    // Check if it is a high-impact news event
+    if (isHighImpactNewsEvent(TimeCurrent())) {
+        // Close all open trades before the news event
+        closeAllTrades();
+    }
+    
+    // Pause trading if necessary
+    pauseTrading();
+    
+    // Check if trading is allowed
+    if (isTradingAllowed()) {
+        // Place trading logic here
+        
+        // ...
+        // Rest of the trading code
+        
+    } else {
+        // Stop trading completely
+        stopTrading();
+    }
+}
